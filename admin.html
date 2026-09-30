@@ -1,43 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - CampusHub</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - CampusHub</title>
+<link rel="stylesheet" href="style.css">
 
-<header>
-    <nav>
-        <h1>🏫 CampusHub</h1>
-        <div>
-            <a href="index.html">Home</a>
-            <a href="issues.html">Issues</a>
-            <a href="report.html">Report</a>
-            <a href="about.html">About</a>
-            <a href="#" id="logoutLink">Logout</a>
-        </div>
+<style>
+/* Admin page only */
+.admin-page {
+    background: #f7f8f6;
+    min-height: 100vh;
+}
+
+.admin-container {
+    width: min(1180px, 92%);
+    margin: 0 auto;
+}
+
+.admin-hero {
+    padding: 55px 0 35px;
+}
+
+.admin-badge {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 20px;
+    background: #e8efe9;
+    color: #526f5a;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.admin-hero h1 {
+    margin: 14px 0 8px;
+    font-size: clamp(32px, 5vw, 48px);
+}
+
+.admin-hero p {
+    color: #68736d;
+    max-width: 680px;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+
+.admin-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid #d8ded9;
+    background: white;
+    color: #303833;
+}
+
+.admin-action:hover {
+    border-color: #526f5a;
+}
+
+.admin-action.primary {
+    background: #526f5a;
+    color: white;
+    border-color: #526f5a;
+}
+
+.admin-summary {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 35px;
+}
+
+.admin-stat {
+    background: white;
+    border: 1px solid #e0e5e1;
+    border-radius: 9px;
+    padding: 20px;
+}
+
+.admin-stat strong {
+    display: block;
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.admin-stat span {
+    color: #68736d;
+    font-size: 13px;
+}
+
+.admin-controls {
+    background: white;
+    border: 1px solid #e0e5e1;
+    border-radius: 9px;
+    padding: 18px;
+    margin-bottom: 22px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-controls input,
+.admin-controls select {
+    min-height: 42px;
+    border: 1px solid #d7ddd8;
+    border-radius: 6px;
+    padding: 0 12px;
+    font: inherit;
+}
+
+.admin-controls input {
+    flex: 1;
+    min-width: 220px;
+}
+
+.admin-issue-list {
+    display: grid;
+    gap: 18px;
+    padding-bottom: 60px;
+}
+
+.admin-issue {
+    background: white;
+    border: 1px solid #e0e5e1;
+    border-radius: 10px;
+    padding: 24px;
+}
+
+.admin-issue-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.admin-issue h2 {
+    margin: 7px 0;
+    font-size: 22px;
+}
+
+.issue-number {
+    color: #7a847d;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.admin-status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #eef1ef;
+    color: #4d5851;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.admin-status.pending { background: #fff3df; color: #93651d; }
+.admin-status.review { background: #eaf0ff; color: #45619b; }
+.admin-status.scheduled { background: #f2eaff; color: #7551a5; }
+.admin-status.progress { background: #e7f4ec; color: #397050; }
+.admin-status.resolved { background: #e4f4e7; color: #327142; }
+
+.admin-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: #68736d;
+    font-size: 13px;
+    margin: 12px 0 18px;
+}
+
+.admin-description {
+    color: #4d5650;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.admin-form {
+    border-top: 1px solid #edf0ed;
+    padding-top: 20px;
+}
+
+.admin-form-title {
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.admin-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.3fr;
+    gap: 12px;
+}
+
+.admin-fields label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #59635d;
+    margin-bottom: 6px;
+}
+
+.admin-fields input,
+.admin-fields select {
+    width: 100%;
+    box-sizing: border-box;
+    height: 42px;
+    border: 1px solid #d7ddd8;
+    border-radius: 6px;
+    padding: 0 10px;
+    font: inherit;
+    background: white;
+}
+
+.admin-update {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.admin-save {
+    border: 0;
+    border-radius: 6px;
+    padding: 11px 20px;
+    background: #526f5a;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin-save:hover {
+    background: #405747;
+}
+
+.admin-empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border: 1px solid #e0e5e1;
+    border-radius: 10px;
+    color: #68736d;
+}
+
+.admin-logout {
+    color: #9b4e4e;
+}
+
+@media (max-width: 900px) {
+    .admin-summary {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .admin-fields {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .admin-issue-top {
+        flex-direction: column;
+    }
+
+    .admin-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-update {
+        justify-content: stretch;
+    }
+
+    .admin-save {
+        width: 100%;
+    }
+}
+</style>
+</head>
+
+<body class="admin-page">
+
+<header class="navbar">
+    <div class="logo">🏫 CampusHub</div>
+
+    <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="issues.html">Issues</a>
+        <a href="report.html">Report</a>
+        <a href="about.html">About</a>
+        <a href="admin.html" class="login-button active">Admin Panel</a>
+        <a href="admin-login(1).html" id="logoutLink" class="admin-logout" onclick="adminLogout(event)">Logout</a>
     </nav>
 </header>
 
-<main class="admin-page">
-    <section class="issues-hero">
-        <div class="issues-hero-content">
-            <p class="section-label">ADMINISTRATION</p>
-            <h2>Issue Management</h2>
-            <p>Review reports and update their status, schedule, and expected repair time.</p>
-        </div>
-    </section>
+<main>
+<section class="admin-hero">
+    <div class="admin-container">
+        <span class="admin-badge">ADMINISTRATION</span>
+        <h1>Complaint Management</h1>
+        <p>
+            Review student complaints, update their status, schedule repair work,
+            and provide an approximate time for completion.
+        </p>
 
-    <section class="admin-section">
-        <div class="section-heading">
-            <p class="section-label">DATABASE</p>
-            <h2>All reported issues</h2>
+        <div class="admin-actions">
+            <a href="issues.html" class="admin-action primary">View Student Issues</a>
+            <a href="report.html" class="admin-action">View Report Page</a>
         </div>
-        <div id="adminMessage" class="admin-message"></div>
-        <div id="adminIssues" class="admin-issues"></div>
-    </section>
+    </div>
+</section>
+
+<section class="admin-container">
+
+    <div class="admin-summary">
+        <div class="admin-stat">
+            <strong id="totalCount">0</strong>
+            <span>Total Issues</span>
+        </div>
+
+        <div class="admin-stat">
+            <strong id="pendingCount">0</strong>
+            <span>Pending</span>
+        </div>
+
+        <div class="admin-stat">
+            <strong id="scheduledCount">0</strong>
+            <span>Scheduled</span>
+        </div>
+
+        <div class="admin-stat">
+            <strong id="progressCount">0</strong>
+            <span>In Progress</span>
+        </div>
+
+        <div class="admin-stat">
+            <strong id="resolvedCount">0</strong>
+            <span>Resolved</span>
+        </div>
+    </div>
+
+    <div class="admin-controls">
+        <input id="adminSearch" type="text" placeholder="Search complaints...">
+
+        <select id="adminFilter">
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="review">Under Review</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+        </select>
+    </div>
+
+    <div id="adminIssueList" class="admin-issue-list"></div>
+
+</section>
 </main>
 
 <footer>
@@ -45,124 +374,274 @@
 </footer>
 
 <script>
-let issues = [];
+const STORAGE_KEY = "campusHubIssuesV2";
 
-function escapeHTML(text) {
-    return String(text ?? "")
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+/* Protect the admin page */
+if (sessionStorage.getItem("campusHubAdminLoggedIn") !== "true") {
+    window.location.href = "admin-login(1).html";
+}
+
+let issues = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+function saveIssues() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
+}
+
+function escapeHTML(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
 
-function renderIssues() {
-    const container = document.getElementById("adminIssues");
-
-    if (!issues.length) {
-        container.innerHTML = "<div class='no-results'><h3>No issues yet</h3><p>Student reports will appear here.</p></div>";
-        return;
-    }
-
-    container.innerHTML = issues.map(issue => `
-        <article class="admin-card">
-            <div class="admin-card-header">
-                <div>
-                    <span class="issue-number">#${String(issue.id).padStart(3, "0")}</span>
-                    <h3>${escapeHTML(issue.title)}</h3>
-                    <p>📍 ${escapeHTML(issue.location)} · ${escapeHTML(issue.category)}</p>
-                </div>
-                <span class="status ${escapeHTML(issue.status)}">${escapeHTML(issue.status)}</span>
-            </div>
-
-            <p class="issue-description">${escapeHTML(issue.description)}</p>
-
-            <div class="admin-form-grid">
-                <label>
-                    Status
-                    <select data-field="status" data-id="${issue.id}">
-                        ${["pending","review","scheduled","progress","resolved"].map(status =>
-                            `<option value="${status}" ${issue.status === status ? "selected" : ""}>${status}</option>`
-                        ).join("")}
-                    </select>
-                </label>
-
-                <label>
-                    Scheduled date
-                    <input type="date" data-field="scheduledDate" data-id="${issue.id}" value="${escapeHTML(issue.scheduledDate || "")}">
-                </label>
-
-                <label>
-                    Scheduled time
-                    <input type="time" data-field="scheduledTime" data-id="${issue.id}" value="${escapeHTML(issue.scheduledTime || "")}">
-                </label>
-
-                <label>
-                    Expected duration
-                    <input type="text" data-field="expectedDuration" data-id="${issue.id}" placeholder="e.g. 2 hours" value="${escapeHTML(issue.expectedDuration || "")}">
-                </label>
-            </div>
-
-            <button class="primary-btn save-issue" data-id="${issue.id}">Save Update</button>
-        </article>
-    `).join("");
-
-    document.querySelectorAll(".save-issue").forEach(button => {
-        button.addEventListener("click", () => saveIssue(Number(button.dataset.id)));
-    });
-}
-
-function valueFor(id, field) {
-    return document.querySelector(`[data-field="${field}"][data-id="${id}"]`).value;
-}
-
-async function saveIssue(id) {
-    const payload = {
-        status: valueFor(id, "status"),
-        scheduledDate: valueFor(id, "scheduledDate"),
-        scheduledTime: valueFor(id, "scheduledTime"),
-        expectedDuration: valueFor(id, "expectedDuration")
+function statusText(status) {
+    const names = {
+        pending: "Pending",
+        review: "Under Review",
+        scheduled: "Scheduled",
+        progress: "In Progress",
+        resolved: "Resolved"
     };
 
-    const response = await fetch(`/api/issues/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+    return names[status] || "Pending";
+}
+
+function formatDate(dateString) {
+    if (!dateString) return "Not provided";
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+        return dateString;
+    }
+
+    return date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+    });
+}
+
+function updateCounters() {
+    document.getElementById("totalCount").textContent = issues.length;
+
+    document.getElementById("pendingCount").textContent =
+        issues.filter(issue => issue.status === "pending").length;
+
+    document.getElementById("scheduledCount").textContent =
+        issues.filter(issue => issue.status === "scheduled").length;
+
+    document.getElementById("progressCount").textContent =
+        issues.filter(issue => issue.status === "progress").length;
+
+    document.getElementById("resolvedCount").textContent =
+        issues.filter(issue => issue.status === "resolved").length;
+}
+
+function createIssueCard(issue) {
+    return `
+        <article class="admin-issue">
+
+            <div class="admin-issue-top">
+                <div>
+                    <span class="issue-number">#${escapeHTML(issue.id)}</span>
+                    <h2>${escapeHTML(issue.title)}</h2>
+                </div>
+
+                <span class="admin-status ${escapeHTML(issue.status || "pending")}">
+                    ${statusText(issue.status)}
+                </span>
+            </div>
+
+            <div class="admin-meta">
+                <span>📍 ${escapeHTML(issue.location || "No location")}</span>
+                <span>Category: <strong>${escapeHTML(issue.category || "Other")}</strong></span>
+                <span>Reported: ${formatDate(issue.reportedAt)}</span>
+            </div>
+
+            <p class="admin-description">
+                ${escapeHTML(issue.description || "No description provided.")}
+            </p>
+
+            <div class="admin-form">
+                <div class="admin-form-title">Review & Update</div>
+
+                <div class="admin-fields">
+
+                    <div>
+                        <label>Status</label>
+                        <select class="status-select" data-id="${escapeHTML(issue.id)}">
+                            <option value="pending" ${issue.status === "pending" ? "selected" : ""}>Pending</option>
+                            <option value="review" ${issue.status === "review" ? "selected" : ""}>Under Review</option>
+                            <option value="scheduled" ${issue.status === "scheduled" ? "selected" : ""}>Scheduled</option>
+                            <option value="progress" ${issue.status === "progress" ? "selected" : ""}>In Progress</option>
+                            <option value="resolved" ${issue.status === "resolved" ? "selected" : ""}>Fixed / Resolved</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Scheduled Date</label>
+                        <input
+                            class="date-input"
+                            data-id="${escapeHTML(issue.id)}"
+                            type="date"
+                            value="${escapeHTML(issue.scheduledDate || "")}"
+                        >
+                    </div>
+
+                    <div>
+                        <label>Scheduled Time</label>
+                        <input
+                            class="time-input"
+                            data-id="${escapeHTML(issue.id)}"
+                            type="time"
+                            value="${escapeHTML(issue.scheduledTime || "")}"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="admin-fields" style="margin-top:12px;">
+                    <div>
+                        <label>Approximate Time to Fix</label>
+                        <input
+                            class="duration-input"
+                            data-id="${escapeHTML(issue.id)}"
+                            type="text"
+                            placeholder="e.g. 2 days, 4 hours"
+                            value="${escapeHTML(issue.expectedDuration || "")}"
+                        >
+                    </div>
+                </div>
+
+                <div class="admin-update">
+                    <button class="admin-save" data-id="${escapeHTML(issue.id)}">
+                        Save Update
+                    </button>
+                </div>
+            </div>
+
+        </article>
+    `;
+}
+
+function displayIssues() {
+    const container = document.getElementById("adminIssueList");
+
+    const search =
+        document.getElementById("adminSearch").value.trim().toLowerCase();
+
+    const filter =
+        document.getElementById("adminFilter").value;
+
+    const filtered = issues.filter(issue => {
+
+        const matchesStatus =
+            filter === "all" || issue.status === filter;
+
+        const searchable = [
+            issue.title,
+            issue.location,
+            issue.category,
+            issue.description,
+            issue.id
+        ].join(" ").toLowerCase();
+
+        const matchesSearch =
+            !search || searchable.includes(search);
+
+        return matchesStatus && matchesSearch;
     });
 
-    const data = await response.json();
-    const message = document.getElementById("adminMessage");
-
-    if (!response.ok) {
-        message.textContent = data.error || "Update failed.";
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="admin-empty">
+                <h2>No complaints found</h2>
+                <p>There are no complaints matching your current search or filter.</p>
+            </div>
+        `;
         return;
     }
 
-    message.textContent = "Issue updated successfully.";
-    await loadIssues();
+    container.innerHTML = filtered
+        .slice()
+        .reverse()
+        .map(createIssueCard)
+        .join("");
+
+    document.querySelectorAll(".admin-save").forEach(button => {
+        button.addEventListener("click", function() {
+
+            const id = this.dataset.id;
+
+            const issue = issues.find(item =>
+                String(item.id) === String(id)
+            );
+
+            if (!issue) return;
+
+            const status =
+                document.querySelector(
+                    `.status-select[data-id="${CSS.escape(id)}"]`
+                ).value;
+
+            const scheduledDate =
+                document.querySelector(
+                    `.date-input[data-id="${CSS.escape(id)}"]`
+                ).value;
+
+            const scheduledTime =
+                document.querySelector(
+                    `.time-input[data-id="${CSS.escape(id)}"]`
+                ).value;
+
+            const expectedDuration =
+                document.querySelector(
+                    `.duration-input[data-id="${CSS.escape(id)}"]`
+                ).value.trim();
+
+            issue.status = status;
+            issue.scheduledDate = scheduledDate;
+            issue.scheduledTime = scheduledTime;
+            issue.expectedDuration = expectedDuration;
+            issue.updatedAt = new Date().toISOString();
+
+            saveIssues();
+            updateCounters();
+            displayIssues();
+        });
+    });
 }
 
-async function loadIssues() {
-    const response = await fetch("/api/issues");
-    if (!response.ok) throw new Error("Could not load issues.");
-    issues = await response.json();
-    renderIssues();
-}
+document.getElementById("adminSearch").addEventListener("input", displayIssues);
+document.getElementById("adminFilter").addEventListener("change", displayIssues);
 
-document.addEventListener("DOMContentLoaded", async () => {
-    const me = await fetch("/api/auth/me").then(r => r.json());
-
-    if (!me.user || me.user.role !== "admin") {
-        window.location.href = "admin-login.html";
-        return;
+function adminLogout(event) {
+    if (event) {
+        event.preventDefault();
     }
 
-    document.getElementById("logoutLink").addEventListener("click", async (e) => {
-        e.preventDefault();
-        await fetch("/api/auth/logout", { method: "POST" });
-        window.location.href = "admin-login.html";
-    });
+    // Clear the admin login session.
+    sessionStorage.removeItem("campusHubAdminLoggedIn");
+    sessionStorage.removeItem("campusHubAdminName");
 
-    await loadIssues();
+    // Redirect directly to the admin login page.
+    window.location.href = "admin-login.html";
+}
+
+// Keep the protection active even if the browser restores this page from cache.
+window.addEventListener("pageshow", function() {
+    if (sessionStorage.getItem("campusHubAdminLoggedIn") !== "true") {
+        window.location.replace("admin-login.html");
+    }
 });
+
+updateCounters();
+displayIssues();
 </script>
+
 </body>
 </html>
