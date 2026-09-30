@@ -374,17 +374,31 @@
 </footer>
 
 <script>
-const STORAGE_KEY = "campusHubIssuesV2";
+let issues = [];
 
-/* Protect the admin page */
-if (sessionStorage.getItem("campusHubAdminLoggedIn") !== "true") {
-    window.location.href = "admin-login.html";
-}
+async function loadIssues() {
+    try {
+        const response = await fetch("/api/issues");
 
-let issues = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        if (!response.ok) {
+            throw new Error("Could not load issues.");
+        }
 
-function saveIssues() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
+        issues = await response.json();
+
+        updateCounters();
+        displayIssues();
+
+    } catch (error) {
+        console.error("Could not load issues:", error);
+
+        document.getElementById("adminIssueList").innerHTML = `
+            <div class="admin-empty">
+                <h2>Could not load complaints</h2>
+                <p>Unable to connect to the CampusHub database.</p>
+            </div>
+        `;
+    }
 }
 
 function escapeHTML(value) {
@@ -573,7 +587,7 @@ function displayIssues() {
         .join("");
 
     document.querySelectorAll(".admin-save").forEach(button => {
-        button.addEventListener("click", function() {
+        button.addEventListener("click", async function() {
 
             const id = this.dataset.id;
 
@@ -603,15 +617,36 @@ function displayIssues() {
                     `.duration-input[data-id="${CSS.escape(id)}"]`
                 ).value.trim();
 
-            issue.status = status;
-            issue.scheduledDate = scheduledDate;
-            issue.scheduledTime = scheduledTime;
-            issue.expectedDuration = expectedDuration;
-            issue.updatedAt = new Date().toISOString();
+            try {
 
-            saveIssues();
-            updateCounters();
-            displayIssues();
+    const response = await fetch(`/api/issues/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            status: status,
+            scheduledDate: scheduledDate,
+            scheduledTime: scheduledTime,
+            expectedDuration: expectedDuration
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        alert(data.error || "Could not update issue.");
+        return;
+    }
+
+    await loadIssues();
+
+} catch (error) {
+
+    console.error(error);
+    alert("Could not connect to the CampusHub server.");
+
+}
         });
     });
 }
@@ -639,8 +674,7 @@ window.addEventListener("pageshow", function() {
     }
 });
 
-updateCounters();
-displayIssues();
+loadIssues();
 </script>
 
 </body>
