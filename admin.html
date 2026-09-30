@@ -301,7 +301,7 @@
         <a href="report.html">Report</a>
         <a href="about.html">About</a>
         <a href="admin.html" class="login-button active">Admin Panel</a>
-        <a href="admin-login(1).html" id="logoutLink" class="admin-logout" onclick="adminLogout(event)">Logout</a>
+        <a href="admin-login.html" id="logoutLink" class="admin-logout" onclick="adminLogout(event)">Logout</a>
     </nav>
 </header>
 
@@ -378,7 +378,7 @@ const STORAGE_KEY = "campusHubIssuesV2";
 
 /* Protect the admin page */
 if (sessionStorage.getItem("campusHubAdminLoggedIn") !== "true") {
-    window.location.href = "admin-login(1).html";
+    window.location.href = "admin-login.html";
 }
 
 let issues = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
