@@ -301,7 +301,7 @@
         <a href="report.html">Report</a>
         <a href="about.html">About</a>
         <a href="admin.html" class="login-button active">Admin Panel</a>
-        <a href="#" id="logoutLink" class="admin-logout">Logout</a>
+        <a href="admin-login(1).html" id="logoutLink" class="admin-logout" onclick="adminLogout(event)">Logout</a>
     </nav>
 </header>
 
@@ -316,8 +316,8 @@
         </p>
 
         <div class="admin-actions">
-            <a href="issues(2).html" class="admin-action primary">View Student Issues</a>
-            <a href="report(1).html" class="admin-action">View Report Page</a>
+            <a href="issues.html" class="admin-action primary">View Student Issues</a>
+            <a href="report.html" class="admin-action">View Report Page</a>
         </div>
     </div>
 </section>
@@ -619,13 +619,25 @@ function displayIssues() {
 document.getElementById("adminSearch").addEventListener("input", displayIssues);
 document.getElementById("adminFilter").addEventListener("change", displayIssues);
 
-document.getElementById("logoutLink").addEventListener("click", function(event) {
-    event.preventDefault();
+function adminLogout(event) {
+    if (event) {
+        event.preventDefault();
+    }
 
+    // Completely end the admin session.
     sessionStorage.removeItem("campusHubAdminLoggedIn");
     sessionStorage.removeItem("campusHubAdminName");
 
-    window.location.href = "admin-login(1).html";
+    // Prevent the browser from keeping the protected admin page as the
+    // active page in the navigation history.
+    window.location.replace("admin-login(1).html");
+}
+
+// Keep the protection active even if the browser restores this page from cache.
+window.addEventListener("pageshow", function() {
+    if (sessionStorage.getItem("campusHubAdminLoggedIn") !== "true") {
+        window.location.replace("admin-login(1).html");
+    }
 });
 
 updateCounters();
