@@ -565,61 +565,23 @@
 
     <script>
 
-        const STORAGE_KEY = "campusHubIssuesV2";
+async function updateHomepageStats() {
+    try {
+        const response = await fetch("/api/stats");
+        const stats = await response.json();
 
+        document.getElementById("homeTotalIssues").textContent = stats.total;
+        document.getElementById("homeResolvedIssues").textContent = stats.resolved;
+        document.getElementById("homeProgressIssues").textContent = stats.progress;
+        document.getElementById("homeScheduledIssues").textContent = stats.scheduled;
+    } catch (error) {
+        console.error("Could not load homepage statistics.", error);
+    }
+}
 
-        function updateHomepageStats() {
+document.addEventListener("DOMContentLoaded", updateHomepageStats);
 
-            const issues =
-                JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-
-            // Total number of complaints
-            const total = issues.length;
-
-
-            // Resolved complaints
-            const resolved =
-                issues.filter(
-                    issue => issue.status === "resolved"
-                ).length;
-
-
-            // Complaints currently being worked on
-            const progress =
-                issues.filter(
-                    issue => issue.status === "progress"
-                ).length;
-
-
-            // Complaints that have been scheduled
-            const scheduled =
-                issues.filter(
-                    issue => issue.status === "scheduled"
-                ).length;
-
-
-            // Update the numbers on the page
-            document.getElementById("homeTotalIssues")
-                .textContent = total;
-
-            document.getElementById("homeResolvedIssues")
-                .textContent = resolved;
-
-            document.getElementById("homeProgressIssues")
-                .textContent = progress;
-
-            document.getElementById("homeScheduledIssues")
-                .textContent = scheduled;
-
-        }
-
-
-        // Load the real complaint numbers
-        updateHomepageStats();
-
-
-    </script>
+</script>
 
 
 </body>

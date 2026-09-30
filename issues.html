@@ -179,427 +179,154 @@
 
 <script>
 
-const STORAGE_KEY = "campusHubIssuesV2";
-
-let issues = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
+let issues = [];
 let currentFilter = "all";
 let currentSearch = "";
 
-
-/* SAVE ISSUES */
-
-function saveIssues() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
-}
-
-
-/* STATUS TEXT */
-
 function getStatusText(status) {
-
-    const statuses = {
+    return {
         pending: "Pending",
         review: "Under Review",
         scheduled: "Scheduled",
         progress: "In Progress",
         resolved: "Resolved"
-    };
-
-    return statuses[status] || "Pending";
+    }[status] || "Pending";
 }
 
-
-/* UPDATE MESSAGE */
-
 function getUpdateMessage(issue) {
-
-    if (issue.status === "pending") {
-        return "Waiting for the issue to be reviewed.";
-    }
-
-    if (issue.status === "review") {
-        return "This issue is currently being reviewed.";
-    }
-
+    if (issue.status === "pending") return "Waiting for the issue to be reviewed.";
+    if (issue.status === "review") return "This issue is currently being reviewed.";
     if (issue.status === "scheduled") {
-
         let message = "Repair has been scheduled.";
-
-        if (issue.scheduledDate) {
-            message += ` ${issue.scheduledDate}`;
-        }
-
-        if (issue.scheduledTime) {
-            message += ` at ${issue.scheduledTime}.`;
-        }
-
-        if (issue.expectedDuration) {
-            message += ` Expected duration: ${issue.expectedDuration}.`;
-        }
-
+        if (issue.scheduledDate) message += ` ${issue.scheduledDate}`;
+        if (issue.scheduledTime) message += ` at ${issue.scheduledTime}.`;
+        if (issue.expectedDuration) message += ` Expected duration: ${issue.expectedDuration}.`;
         return message;
     }
-
-    if (issue.status === "progress") {
-        return "Work is currently underway.";
-    }
-
-    if (issue.status === "resolved") {
-        return "This issue has been resolved.";
-    }
-
+    if (issue.status === "progress") return "Work is currently underway.";
+    if (issue.status === "resolved") return "This issue has been resolved.";
     return "";
 }
 
-
-/* ESCAPE USER INPUT */
-
 function escapeHTML(text) {
-
     if (!text) return "";
-
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-
-/* FORMAT DATE */
-
 function formatDate(dateString) {
-
     if (!dateString) return "";
-
-    const date = new Date(dateString);
-
-    return date.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
+    return new Date(dateString).toLocaleDateString("en-IN", {
+        day: "numeric", month: "short", year: "numeric"
     });
 }
 
-
-/* TIMELINE */
-
 function createTimeline(issue) {
-
     const status = issue.status;
-
-    let reported = true;
-    let review = false;
-    let scheduled = false;
-    let progress = false;
-    let resolved = false;
-
-    if (status === "review") {
-        review = true;
-    }
-
-    if (status === "scheduled") {
-        review = true;
-        scheduled = true;
-    }
-
-    if (status === "progress") {
-        review = true;
-        progress = true;
-    }
-
-    if (status === "resolved") {
-        review = true;
-        progress = true;
-        resolved = true;
-    }
-
+    const review = ["review","scheduled","progress","resolved"].includes(status);
+    const scheduled = ["scheduled"].includes(status);
+    const progress = ["progress","resolved"].includes(status);
+    const resolved = status === "resolved";
 
     return `
         <div class="issue-timeline">
-
-            <div class="timeline-step ${reported ? "done" : ""}">
-                <span></span>
-                <div>
-                    <strong>Reported</strong>
-                    <small>${formatDate(issue.reportedAt)}</small>
-                </div>
-            </div>
-
-
-            <div class="timeline-step ${review ? "done" : ""}">
-                <span></span>
-                <div>
-                    <strong>Under Review</strong>
-                    <small>
-                        ${review ? "Issue reviewed" : "Waiting"}
-                    </small>
-                </div>
-            </div>
-
-
-            <div class="timeline-step ${scheduled ? "done" : ""}">
-                <span></span>
-                <div>
-                    <strong>Scheduled</strong>
-                    <small>
-                        ${scheduled ? "Work scheduled" : "Not scheduled"}
-                    </small>
-                </div>
-            </div>
-
-
-            <div class="timeline-step ${progress ? "done" : ""}">
-                <span></span>
-                <div>
-                    <strong>In Progress</strong>
-                    <small>
-                        ${progress ? "Work started" : "Waiting"}
-                    </small>
-                </div>
-            </div>
-
-
-            <div class="timeline-step ${resolved ? "done" : ""}">
-                <span></span>
-                <div>
-                    <strong>Resolved</strong>
-                    <small>
-                        ${resolved ? "Completed" : "Not resolved"}
-                    </small>
-                </div>
-            </div>
-
-        </div>
-    `;
+            <div class="timeline-step done"><span></span><div><strong>Reported</strong><small>${formatDate(issue.reportedAt)}</small></div></div>
+            <div class="timeline-step ${review ? "done" : ""}"><span></span><div><strong>Under Review</strong><small>${review ? "Issue reviewed" : "Waiting"}</small></div></div>
+            <div class="timeline-step ${scheduled ? "done" : ""}"><span></span><div><strong>Scheduled</strong><small>${scheduled ? "Work scheduled" : "Not scheduled"}</small></div></div>
+            <div class="timeline-step ${progress ? "done" : ""}"><span></span><div><strong>In Progress</strong><small>${progress ? "Work started" : "Waiting"}</small></div></div>
+            <div class="timeline-step ${resolved ? "done" : ""}"><span></span><div><strong>Resolved</strong><small>${resolved ? "Completed" : "Not resolved"}</small></div></div>
+        </div>`;
 }
-
-
-/* CREATE ISSUE CARD */
 
 function createIssueCard(issue) {
-
     return `
         <article class="issue-card">
-
             <div class="issue-card-top">
-
-                <span class="issue-number">
-                    #${escapeHTML(issue.id)}
-                </span>
-
-                <span class="status ${escapeHTML(issue.status)}">
-                    ${getStatusText(issue.status)}
-                </span>
-
+                <span class="issue-number">#${escapeHTML(String(issue.id).padStart(3, "0"))}</span>
+                <span class="status ${escapeHTML(issue.status)}">${getStatusText(issue.status)}</span>
             </div>
-
-
-            <h3>
-                ${escapeHTML(issue.title)}
-            </h3>
-
-
-            <p class="issue-location">
-                📍 ${escapeHTML(issue.location)}
-            </p>
-
-
-            <p class="issue-description">
-                ${escapeHTML(issue.description)}
-            </p>
-
-
+            <h3>${escapeHTML(issue.title)}</h3>
+            <p class="issue-location">📍 ${escapeHTML(issue.location)}</p>
+            <p class="issue-description">${escapeHTML(issue.description)}</p>
             <div class="issue-meta">
-
-                <span>
-                    Category:
-                    <strong>
-                        ${escapeHTML(issue.category)}
-                    </strong>
-                </span>
-
-                <span>
-                    Reported:
-                    <strong>
-                        ${formatDate(issue.reportedAt)}
-                    </strong>
-                </span>
-
+                <span>Category: <strong>${escapeHTML(issue.category)}</strong></span>
+                <span>Reported: <strong>${formatDate(issue.reportedAt)}</strong></span>
             </div>
-
-
             ${createTimeline(issue)}
-
-
-            <div class="issue-update">
-
-                <strong>Latest update</strong>
-
-                <p>
-                    ${escapeHTML(getUpdateMessage(issue))}
-                </p>
-
-            </div>
-
-        </article>
-    `;
+            <div class="issue-update"><strong>Latest update</strong><p>${escapeHTML(getUpdateMessage(issue))}</p></div>
+        </article>`;
 }
-
-
-/* UPDATE COUNTERS */
 
 function updateCounters() {
-
-    const total = issues.length;
-
-    const pending = issues.filter(
-        issue => issue.status === "pending"
-    ).length;
-
-    const scheduled = issues.filter(
-        issue => issue.status === "scheduled"
-    ).length;
-
-    const progress = issues.filter(
-        issue => issue.status === "progress"
-    ).length;
-
-    const resolved = issues.filter(
-        issue => issue.status === "resolved"
-    ).length;
-
-
-    document.getElementById("totalIssues").textContent = total;
-
-    document.getElementById("pendingIssues").textContent = pending;
-
-    document.getElementById("scheduledIssues").textContent = scheduled;
-
-    document.getElementById("progressIssues").textContent = progress;
-
-    document.getElementById("resolvedIssues").textContent = resolved;
+    document.getElementById("totalIssues").textContent = issues.length;
+    document.getElementById("pendingIssues").textContent = issues.filter(i => i.status === "pending").length;
+    document.getElementById("scheduledIssues").textContent = issues.filter(i => i.status === "scheduled").length;
+    document.getElementById("progressIssues").textContent = issues.filter(i => i.status === "progress").length;
+    document.getElementById("resolvedIssues").textContent = issues.filter(i => i.status === "resolved").length;
 }
-
-
-/* DISPLAY ISSUES */
 
 function displayIssues() {
+    const container = document.getElementById("issuesContainer");
+    const noIssues = document.getElementById("noIssues");
+    const searchText = currentSearch.toLowerCase();
 
-    const container =
-        document.getElementById("issuesContainer");
-
-    const noIssues =
-        document.getElementById("noIssues");
-
-
-    let filteredIssues = issues.filter(issue => {
-
-        const matchesFilter =
-            currentFilter === "all" ||
-            issue.status === currentFilter;
-
-
-        const searchText =
-            currentSearch.toLowerCase();
-
-
-        const matchesSearch =
-            issue.title.toLowerCase().includes(searchText) ||
-            issue.location.toLowerCase().includes(searchText) ||
-            issue.category.toLowerCase().includes(searchText) ||
-            issue.description.toLowerCase().includes(searchText);
-
-
-        return matchesFilter && matchesSearch;
+    const filtered = issues.filter(issue => {
+        const matchesFilter = currentFilter === "all" || issue.status === currentFilter;
+        const haystack = `${issue.title} ${issue.location} ${issue.category} ${issue.description}`.toLowerCase();
+        return matchesFilter && haystack.includes(searchText);
     });
 
+    container.innerHTML = filtered.map(createIssueCard).join("");
 
-    container.innerHTML = "";
-
-
-    if (filteredIssues.length === 0) {
-
+    if (filtered.length === 0) {
         noIssues.style.display = "block";
-
-        if (issues.length > 0) {
-
-            noIssues.querySelector("h3").textContent =
-                "No matching issues";
-
-            noIssues.querySelector("p").textContent =
-                "Try changing your search or filter.";
-        }
-
-        return;
+        noIssues.querySelector("h3").textContent = issues.length ? "No matching issues" : "No issues reported yet";
+        noIssues.querySelector("p").textContent = issues.length
+            ? "Try changing your search or filter."
+            : "Be the first to report a campus problem.";
+    } else {
+        noIssues.style.display = "none";
     }
 
-
-    noIssues.style.display = "none";
-
-
-    filteredIssues
-        .slice()
-        .reverse()
-        .forEach(issue => {
-
-            container.innerHTML +=
-                createIssueCard(issue);
-
-        });
+    updateCounters();
 }
 
+async function loadIssues() {
+    const response = await fetch("/api/issues");
+    if (!response.ok) throw new Error("Could not load issues.");
+    issues = await response.json();
+    displayIssues();
+}
 
-/* FILTER BUTTONS */
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const me = await fetch("/api/auth/me").then(r => r.json());
+        if (!me.user) {
+            window.location.href = "login.html";
+            return;
+        }
 
-document
-    .querySelectorAll(".filter-btn")
-    .forEach(button => {
+        await loadIssues();
 
-        button.addEventListener("click", function () {
-
-            document
-                .querySelectorAll(".filter-btn")
-                .forEach(btn =>
-                    btn.classList.remove("active")
-                );
-
-
-            this.classList.add("active");
-
-
-            currentFilter =
-                this.dataset.filter;
-
-
-            displayIssues();
-
+        document.querySelectorAll("[data-filter]").forEach(button => {
+            button.addEventListener("click", () => {
+                currentFilter = button.dataset.filter;
+                displayIssues();
+            });
         });
 
-    });
-
-
-/* SEARCH */
-
-document
-    .getElementById("issueSearch")
-    .addEventListener("input", function () {
-
-        currentSearch =
-            this.value.trim();
-
-        displayIssues();
-
-    });
-
-
-/* INITIAL LOAD */
-
-updateCounters();
-
-displayIssues();
+        const search = document.getElementById("issueSearch");
+        if (search) {
+            search.addEventListener("input", e => {
+                currentSearch = e.target.value;
+                displayIssues();
+            });
+        }
+    } catch (err) {
+        document.getElementById("issuesContainer").innerHTML =
+            "<p>Could not connect to the CampusHub database.</p>";
+    }
+});
 
 </script>
 

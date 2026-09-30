@@ -290,128 +290,52 @@
 
 <script>
 
-const STORAGE_KEY = "campusHubIssuesV2";
+async function requireStudent() {
+    const response = await fetch("/api/auth/me");
+    const data = await response.json();
 
-
-/* GET EXISTING ISSUES */
-
-let issues =
-    JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-
-/* GENERATE ISSUE NUMBER */
-
-function generateIssueId() {
-
-    if (issues.length === 0) {
-        return "001";
+    if (!data.user || data.user.role !== "student") {
+        window.location.href = "login.html";
+        return false;
     }
 
-
-    const numbers =
-        issues.map(issue => Number(issue.id));
-
-
-    const highest =
-        Math.max(...numbers);
-
-
-    return String(highest + 1).padStart(3, "0");
+    return true;
 }
 
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!(await requireStudent())) return;
 
-/* FORM SUBMISSION */
-
-document
-    .getElementById("reportForm")
-    .addEventListener("submit", function(event) {
-
+    document.getElementById("reportForm").addEventListener("submit", async function(event) {
         event.preventDefault();
 
-
-        const title =
-            document
-                .getElementById("issueTitle")
-                .value
-                .trim();
-
-
-        const category =
-            document
-                .getElementById("issueCategory")
-                .value;
-
-
-        const location =
-            document
-                .getElementById("issueLocation")
-                .value
-                .trim();
-
-
-        const description =
-            document
-                .getElementById("issueDescription")
-                .value
-                .trim();
-
-
-        const newIssue = {
-
-            id: generateIssueId(),
-
-            title: title,
-
-            category: category,
-
-            location: location,
-
-            description: description,
-
-            reportedAt:
-                new Date().toISOString(),
-
-            updatedAt:
-                new Date().toISOString(),
-
-            status: "pending",
-
-            scheduledDate: "",
-
-            scheduledTime: "",
-
-            expectedDuration: ""
-
+        const payload = {
+            title: document.getElementById("issueTitle").value.trim(),
+            category: document.getElementById("issueCategory").value,
+            location: document.getElementById("issueLocation").value.trim(),
+            description: document.getElementById("issueDescription").value.trim()
         };
 
+        try {
+            const response = await fetch("/api/issues", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
-        /* ADD ISSUE */
+            const data = await response.json();
 
-        issues.push(newIssue);
+            if (!response.ok) {
+                alert(data.error || "Could not submit the issue.");
+                return;
+            }
 
-
-        /* SAVE ISSUE */
-
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(issues)
-        );
-
-
-        /* HIDE FORM */
-
-        document
-            .getElementById("reportForm")
-            .style.display = "none";
-
-
-        /* SHOW SUCCESS */
-
-        document
-            .getElementById("successMessage")
-            .style.display = "block";
-
+            document.getElementById("reportForm").style.display = "none";
+            document.getElementById("successMessage").style.display = "block";
+        } catch (err) {
+            alert("Cannot connect to the CampusHub server.");
+        }
     });
+});
 
 </script>
 

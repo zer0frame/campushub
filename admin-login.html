@@ -45,21 +45,47 @@
 <footer><p>© 2026 CampusHub. Built for a better campus.</p></footer>
 
 <script>
-document.getElementById("adminLoginForm").addEventListener("submit", function(event) {
+
+document.getElementById("adminLoginForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
     const username = document.getElementById("adminUsername").value.trim();
     const password = document.getElementById("adminPassword").value;
     const error = document.getElementById("adminError");
 
-    if (username === "admin" && password === "admin123") {
-        sessionStorage.setItem("campusHubAdminLoggedIn", "true");
-        sessionStorage.setItem("campusHubAdminName", username);
+    error.textContent = "";
+
+    if (!username || !password) {
+        error.textContent = "Please enter both your username and password.";
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            error.textContent = data.error || "Login failed.";
+            return;
+        }
+
+        if (data.user.role !== "admin") {
+            await fetch("/api/auth/logout", { method: "POST" });
+            error.textContent = "This account does not have admin access.";
+            return;
+        }
+
         window.location.href = "admin.html";
-    } else {
-        error.textContent = "Invalid admin username or password.";
+    } catch (err) {
+        error.textContent = "Cannot connect to the CampusHub server.";
     }
 });
+
 </script>
 </body>
 </html>

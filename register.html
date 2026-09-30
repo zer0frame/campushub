@@ -150,8 +150,7 @@
 </footer>
 
 <script>
-document.getElementById("studentRegisterForm").addEventListener("submit", function(event) {
-
+document.getElementById("studentRegisterForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
     const name = document.getElementById("studentName").value.trim();
@@ -166,6 +165,11 @@ document.getElementById("studentRegisterForm").addEventListener("submit", functi
     error.textContent = "";
     success.textContent = "";
 
+    if (!name || !username || !email || !password) {
+        error.textContent = "Please fill in all fields.";
+        return;
+    }
+
     if (password !== confirmPassword) {
         error.textContent = "Passwords do not match.";
         return;
@@ -176,52 +180,29 @@ document.getElementById("studentRegisterForm").addEventListener("submit", functi
         return;
     }
 
-    const students = JSON.parse(
-        localStorage.getItem("campusHubStudents") || "[]"
-    );
+    try {
+        const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, username, email, password })
+        });
 
-    const usernameExists = students.some(function(student) {
-        return student.username.toLowerCase() === username.toLowerCase();
-    });
+        const data = await response.json();
 
-    if (usernameExists) {
-        error.textContent = "This username is already registered.";
-        return;
+        if (!response.ok) {
+            error.textContent = data.error || "Registration failed.";
+            return;
+        }
+
+        success.textContent = "Account created successfully! Redirecting to login...";
+        document.getElementById("studentRegisterForm").reset();
+
+        setTimeout(function() {
+            window.location.href = "login.html";
+        }, 1000);
+    } catch (err) {
+        error.textContent = "Could not connect to the server. Make sure CampusHub is running.";
     }
-
-    const emailExists = students.some(function(student) {
-        return student.email.toLowerCase() === email.toLowerCase();
-    });
-
-    if (emailExists) {
-        error.textContent = "This email is already registered.";
-        return;
-    }
-
-    const newStudent = {
-        name: name,
-        username: username,
-        email: email,
-        password: password,
-        registeredAt: new Date().toISOString()
-    };
-
-    students.push(newStudent);
-
-    localStorage.setItem(
-        "campusHubStudents",
-        JSON.stringify(students)
-    );
-
-    success.textContent =
-        "Account created successfully! Redirecting to login...";
-
-    document.getElementById("studentRegisterForm").reset();
-
-    setTimeout(function() {
-        window.location.href = "login.html";
-    }, 1000);
-
 });
 </script>
 
